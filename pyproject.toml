@@ -8,10 +8,14 @@ dependencies = [
     "soundfile>=0.12",
     "torch>=2.8",
     "torchaudio>=2.8",
+    "openai-whisper>=20250625",
+    "fastapi>=0.141",
+    "uvicorn>=0.53",
+    "python-multipart>=0.0.20",
 ]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "httpx"]
 
 # Windows/Linux'ta PyPI'daki torch wheel'i yalnızca CPU destekli; CUDA build'i PyTorch index'inden alınır.
 [tool.uv.sources]

@@ -5,3 +5,7 @@ __pycache__/
 # Test ses kayıtları commit edilmez (gizlilik ve repo boyutu)
 tests/data/*
 !tests/data/README.md
+
+# Transkript çıktıları commit edilmez (özel kayıtlardan türetilir)
+outputs/*
+!outputs/.gitkeep

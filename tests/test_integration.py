@@ -8,10 +8,12 @@ import time
 from pathlib import Path
 
 import pytest
+import soundfile as sf
 import torch
 from huggingface_hub import get_token
 
 from diarization import Diarizer
+from transcription import Transcriber
 
 pytestmark = [
     pytest.mark.integration,
@@ -105,3 +107,17 @@ def test_overlap(diarize, device):
 @pytest.mark.parametrize("name", FILES)
 def test_gpu_and_cpu_agree_on_speaker_count(diarize, name):
     assert len(speakers(diarize("auto", name))) == len(speakers(diarize("cpu", name)))
+
+
+def test_transcriber_words():
+    path = DATA / "two_speakers_clean.wav"
+    if not path.is_file():
+        pytest.skip(f"{path.name} yok (bkz. tests/data/README.md)")
+    words = Transcriber(device="auto").transcribe_file(path)
+    duration = sf.info(path).duration
+    assert words
+    assert all(set(w) == {"start", "end", "text"} and type(w["start"]) is float for w in words)
+    starts = [w["start"] for w in words]
+    assert starts == sorted(starts)
+    assert all(0 <= w["start"] <= w["end"] <= duration + 0.001 for w in words)
+    assert "".join(w["text"] for w in words).strip()
