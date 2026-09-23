@@ -8,13 +8,21 @@ Açık onay olmadan kapsamı genişletme.
 Her anlamlı değişiklikte şu sırayı izle:
 
 1. Mevcut kapsamı anla.
-2. `PROJECT_BRAIN.md`, `CURRENT_STATE.md` ve `DECISIONS.md` dosyalarını oku.
+2. `CLAUDE.md`, `PROJECT_BRAIN.md`, `CURRENT_STATE.md`, `DECISIONS.md` ve `README.md` dosyalarını oku. Yeni özellik, mimari değişiklik veya kapsam genişlemesi planlamadan önce bu zorunludur.
 3. İstendiğinde implementasyondan önce Plan Mode kullan.
 4. Gereken en küçük değişikliği yap.
 5. Değişikliği test et.
 6. Sonucu doğrula.
 7. İlgili proje MD dosyalarını güncelle.
-8. Yalnızca doğrulamadan sonra commit et.
+8. Commit öncesinde ilgili test/doğrulamayı, `git diff`, `git status`, token/secret taramasını ve ignore kontrolünü yap; sonucu kullanıcıya raporla.
+9. Commit ve push yalnızca kullanıcı onayıyla yap.
+
+## Kararlarla Çelişki
+Yeni bir gereksinim mevcut bir kararla (`DECISIONS.md`) veya kapsam listeleriyle çelişiyorsa:
+- Eski karar sessizce değiştirilmez.
+- Çelişki açıkça belirtilir.
+- Güncellenmesi gereken karar söylenir.
+- Implementasyondan önce kullanıcı onayı beklenir.
 
 ## Temel Kurallar
 - Implementasyonları minimal ve odaklı tut.
