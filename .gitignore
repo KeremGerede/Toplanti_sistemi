@@ -9,3 +9,12 @@ tests/data/*
 # Transkript çıktıları commit edilmez (özel kayıtlardan türetilir)
 outputs/*
 !outputs/.gitkeep
+
+# Ground truth referansları commit edilmez (gerçek konuşma içeriği); tests/data dışında da
+*.reference.json
+
+# SQLite analiz veritabanı ve yardımcı dosyaları commit edilmez
+analyses.db*
+
+# Yerel çalıştırma ayarı
+.claude/launch.json

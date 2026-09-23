@@ -15,7 +15,11 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8", "httpx"]
+dev = [
+    "pytest>=8",
+    "httpx",
+    "jiwer>=4.0.0",
+]
 
 # Windows/Linux'ta PyPI'daki torch wheel'i yalnızca CPU destekli; CUDA build'i PyTorch index'inden alınır.
 [tool.uv.sources]
