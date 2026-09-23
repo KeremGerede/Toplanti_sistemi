@@ -25,6 +25,8 @@ Her anlamlı değişiklikte şu sırayı izle:
 - Açıkça istenmedikçe UI, API, veritabanı, STT, LLM, ağ (networking) veya cihaz entegrasyonu ekleme.
 - İleride canlı ses desteğiyle uyumluluğu koru, ancak henüz gerçek zamanlı streaming implementasyonu yapma.
 - Bir görev test edilip doğrulanmadan tamamlandığını asla varsayma.
+- Proje MD dosyalarını Türkçe tut; teknik terimler gerektiğinde İngilizce kalabilir.
+- Hugging Face token'ını asla kaynak koda, MD dosyalarına, repoya veya commit geçmişine yazma. Erişim için `uv run hf auth login` veya güvenli bir ortam değişkeni kullanılır.
 
 ## Mevcut Teknik Yön
 Projenin şu anki hedefi bağımsız (standalone) bir speaker diarization modülüdür.
@@ -37,15 +39,18 @@ Modül:
 - Normalize edilmiş, JSON uyumlu bir çıktı üretmeli.
 - CUDA mevcut olduğunda GPU kullanmalı.
 - CUDA mevcut olmadığında CPU'ya geri dönmeli (fallback).
-- İleride `auto`, `cpu` veya `cuda` ile açık cihaz seçimini desteklemeli.
+- `auto`, `cpu` veya `cuda` ile açık cihaz seçimini desteklemeli.
 - İlk diarization yaklaşımı olarak `pyannote.audio` ile `speaker-diarization-community-1` kullanmalı.
 
+Kullanıcı onayıyla, diarization modülü değiştirilmeden üzerine şunlar eklendi:
+- `openai-whisper` (`turbo` modeli, sabit Türkçe) ile kelime zaman damgalı speech-to-text.
+- Whisper kelimelerinin diarization segmentlerine zaman örtüşmesiyle eşlenmesi (örtüşmeyen kelimeler için en fazla 0.5 sn tolerans).
+- Yalnızca yerel (127.0.0.1) çalışan minimal FastAPI backend: `POST /diarize` konuşmacılı transkripti döndürür ve `outputs/` altına JSON olarak kaydeder.
+
 ## Şimdilik Kapsam Dışı
-- Speech-to-text
-- Whisper
 - Ahmet/Mehmet gibi konuşmacı kimliği tanıma
 - UI
-- FastAPI
+- Minimal yerel `POST /diarize` endpoint'i dışındaki API özellikleri (kimlik doğrulama, ağa açma, kuyruk vb.)
 - Veritabanı
 - Wi-Fi
 - Bluetooth

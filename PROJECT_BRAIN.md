@@ -68,6 +68,31 @@ audio.wav
 
 İlk sürümün Ahmet, Mehmet veya Ayşe gibi gerçek kimlikleri bilmesi gerekmiyor.
 
+### Konuşmacılı Transkript (kapsam genişlemesi)
+
+Kullanıcı onayıyla diarization modülünün üzerine speech-to-text ve yerel bir API eklendi. Diarization modülünün kendi çıktısı yukarıdaki gibi kalır. Yerel API (`POST /diarize`) her segmentte o aralıkta söyleneni de döndürür:
+
+```json
+{
+  "source_file": "meeting.wav",
+  "speaker_count": 2,
+  "segments": [
+    {
+      "speaker": "SPEAKER_00",
+      "start": 0.82,
+      "end": 5.41,
+      "text": "Bugünkü toplantıda yeni cihazın tasarımını konuşacağız."
+    },
+    {
+      "speaker": "SPEAKER_01",
+      "start": 5.68,
+      "end": 9.92,
+      "text": "Öncelikle mikrofon tarafını netleştirebiliriz."
+    }
+  ]
+}
+```
+
 ---
 
 ## Terminoloji
@@ -133,6 +158,12 @@ CUDA mevcut değil → CPU
 
 Implementasyon yalnızca CPU bulunan sistemlerde de kullanılabilir kalmalı.
 
+### Speech-to-text
+`openai-whisper`, model `turbo` (large-v3-turbo), dil sabit Türkçe (`tr`), kelime zaman damgalarıyla.
+
+### Yerel API
+FastAPI + uvicorn, yalnızca `127.0.0.1` üzerinde. Çıktılar `outputs/` klasörüne yazılır.
+
 ---
 
 ## Tasarım İlkesi
@@ -175,11 +206,9 @@ Milestone şu koşullar sağlandığında başarılı sayılır:
 
 Henüz implemente etme:
 
-- Speech-to-text
-- Whisper
 - Gerçek zamanlı streaming
 - UI
-- REST API
+- Minimal yerel `POST /diarize` endpoint'i dışındaki REST API özellikleri
 - Veritabanı
 - Kullanıcı hesapları
 - Wi-Fi iletişimi
