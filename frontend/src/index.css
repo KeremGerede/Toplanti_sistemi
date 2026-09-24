@@ -1,0 +1,96 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: #1f2328;
+  background: #f5f6f8;
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+h1 {
+  margin: 0 0 20px;
+  font-size: 1.6rem;
+}
+
+.panel,
+.summary,
+.segment {
+  background: #fff;
+  border: 1px solid #d8dde3;
+  border-radius: 8px;
+}
+
+.panel {
+  padding: 16px;
+}
+
+.file-name {
+  margin: 10px 0 14px;
+  color: #57606a;
+}
+
+button {
+  padding: 8px 20px;
+  font-size: 1rem;
+  color: #fff;
+  background: #1f6feb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #9aa4af;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  color: #a40e26;
+  background: #ffebe9;
+  border-radius: 6px;
+}
+
+.summary {
+  margin: 20px 0 12px;
+  padding: 12px 16px;
+}
+
+.summary p {
+  margin: 4px 0;
+}
+
+.segments {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segment {
+  margin-bottom: 8px;
+  padding: 10px 14px;
+}
+
+.speaker {
+  font-weight: 600;
+}
+
+.time {
+  font-size: 0.85rem;
+  color: #57606a;
+  font-variant-numeric: tabular-nums;
+}
+
+.text {
+  margin: 6px 0 0;
+}
+
+.text.empty {
+  color: #8c959f;
+  font-style: italic;
+}
