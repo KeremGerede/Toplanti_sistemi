@@ -81,11 +81,7 @@ git clone https://github.com/KeremGerede/Toplanti_sistemi.git
 cd Toplanti_sistemi
 ```
 
-Not: Güncel geliştirme şu an `milestone-1-diarization` dalındadır ve henüz `main`'e alınmamıştır. Bu dalla çalışmak için:
-
-```powershell
-git checkout milestone-1-diarization
-```
+Not: Geliştirme doğrudan `main` dalında yürütülür; klonlandıktan sonra ayrıca dal değiştirmek gerekmez.
 
 **Bundan sonraki bütün komutlar, aksi belirtilmedikçe proje kökünde (`Toplanti_sistemi` klasörü) çalıştırılır.**
 
@@ -319,6 +315,7 @@ Test kayıtları `tests/data/` altında durur. Gizlilik ve repo boyutu nedeniyle
 |---|---|
 | `two_speakers_clean.wav` | Yerelde mevcut; 2 konuşmacı. Referansı henüz hazırlanmadı. |
 | `three_speakers.wav` | Yerelde mevcut; 3 konuşmacı. Referansı (`three_speakers.reference.json`) hazır. |
+| `two_speakers_v2.wav` | Yerelde mevcut; bağımsız yeni 2 konuşmacılı kayıt (~32 sn). Referansı henüz hazırlanmadı. |
 | `short_utterances.wav` | Henüz hazırlanmadı |
 | `overlap.wav` | Henüz hazırlanmadı |
 
@@ -417,17 +414,23 @@ Raporlar `tests/data/results/` altına yazılır ve commit edilmez. Ayrıntılar
   - Aynı konuşmacı benzerliği (A-A / B-B): yaklaşık 0.60–0.65.
   - Farklı konuşmacı benzerliği (A-B): yaklaşık 0.16–0.19.
   - Zaman kaynaklı bir kayma gözlenmedi.
-- **Mevcut güçlü hipotez** (henüz kanıtlanmadı): Sorun embedding modelinin kişileri ayırt edememesi değil. Pipeline'ın kayan pencere (sliding-window), segmentasyon maskesi ve embedding çıkarma aşamasında olabilir.
+
+**Gerçek pipeline teşhisi (doğrulandı):**
+- Sorun embedding modelinde değil, segmentasyon aşamasında.
+- 10 sn'lik pencerelerin çoğunda A ile B aynı yerel konuşmacı slotuna düşüyor. Bu yüzden clustering'e A+B karışık embedding'ler gidiyor.
+
+**Slot-free teşhis (yalnızca deney; ürüne alınmadı):**
+- Slot maskeleri kaldırıldı; konuşma bölgeleri 1.5 sn'lik pencerelere bölündü; aynı embedding modeli ve aynı clustering kullanıldı.
+- three_speakers'ta 3/3 konuşmacı bulundu; DER ~%11.4, konuşmacı karışması %0.
+- Ayrıntılar `CURRENT_STATE.md` içinde.
 
 Bu değerler kullanılan donanıma ve ses kaydına göre değişebilir.
 
 ## 17. Sıradaki Teknik Adım
 
-Bir sonraki kalite teşhisi: Community-1 pipeline'ının clustering'e gerçekten verdiği pencere bazlı (sliding-window) embedding'lerin incelenmesi.
-
-Bulguya göre şunlardan biri değerlendirilecek:
-- clustering ayarları
-- alternatif bir diarization yaklaşımı
+1. `two_speakers_v2.reference.json` dosyasını sesi dinleyerek bağımsız hazırlamak.
+2. Community-1 baseline ile slot-free yaklaşımı bu kayıtta karşılaştırmak (DER, konuşmacı karışması, kaçırılan konuşma, yanlış alarm).
+3. Sonuç iyiyse slot-free yaklaşımın ürün pipeline'ına alınmasını planlamak.
 
 ## 18. Frontend V0 Sınırları
 
@@ -492,3 +495,5 @@ Geliştirme şu sırayı izler:
 ```text
 Plan → Onay → Uygula → Test → Doğrula → Dokümanları güncelle → Kullanıcı onayıyla commit
 ```
+
+Commit'ler doğrudan `main` dalına atılır ve kullanıcı onayıyla `origin/main`'e push edilir.

@@ -11,7 +11,8 @@ V1.1 geliştirmesi sürüyor (tarih: 2026-09-24).
   baseline kalite ölçümü → Frontend V0 → diarization teşhisi / iyileştirme → SQLite + tam frontend özellikleri
   ```
 
-- Şu an diarization teşhis aşamasındayız.
+- Diarization teşhisi tamamlandı (2026-09-24). Ana sorun Community-1'in segmentation / local speaker slot aşaması olarak tespit edildi. Slot-free kısa-pencere yaklaşımı güçlü bir çözüm adayı, ancak **henüz ürün koduna alınmadı** (bkz. "Diarization Teşhis Bulguları").
+- Proje geçici olarak beklemeye alındı. Dönüşte ilk adım: `two_speakers_v2.reference.json` hazırlamak (bkz. "Sonraki Adım").
 
 ## Mevcut Milestone
 - Milestone-1: İlk bağımsız speaker diarization modülünü geliştirmek ve doğrulamak. Açık kriter: 3 konuşmacı testi.
@@ -63,15 +64,16 @@ V1.1 geliştirmesi sürüyor (tarih: 2026-09-24).
   - Vite dev proxy ile backend'e erişiyor; CORS eklenmedi.
   - Backend kodu değiştirilmedi.
 - Uçtan uca doğrulama: `two_speakers_clean.wav` ve `three_speakers.wav` (GPU ve CPU; frontend üzerinden de).
+- **Diarization teşhisi (2026-09-24):** gerçek pipeline embedding analizi, slot-free teşhisi, 2 konuşmacılı regresyon ve yeni bağımsız test kaydının doğrulanması. Hepsi yalnızca teşhis düzeyinde; ürün kodu değişmedi (bkz. "Diarization Teşhis Bulguları" 4–7).
 
 ## Bekleyenler
-- **Diarization iyileştirmesi:** three_speakers'ta A ve B birleşiyor (aşağıdaki teşhis bulgularına bakın).
-- `two_speakers_clean.reference.json`: kullanıcı tarafından sıfırdan hazırlanacak.
+- **Diarization iyileştirmesi:** three_speakers'ta A ve B birleşiyor. Çözüm adayı (slot-free) teşhis düzeyinde; ürüne alınmadı (bkz. "Sonraki Adım").
+- `two_speakers_v2.reference.json`: kullanıcı tarafından sesi dinleyerek bağımsız hazırlanacak (ilk adım).
+- `two_speakers_clean.reference.json`: kullanıcı tarafından sıfırdan hazırlanacak (öncelik v2'den sonra).
 - Test kayıtları: `short_utterances.wav` ve `overlap.wav` (bkz. `tests/data/README.md`).
 - SQLite ile analiz geçmişi ve tam frontend özellikleri (V1.1'in sonraki aşaması).
-- CLAUDE.md, PROJECT_BRAIN.md ve DECISIONS.md'nin Frontend V0 ve V1.1 durumuna göre güncellenmesi.
+- CLAUDE.md, PROJECT_BRAIN.md ve DECISIONS.md kapsam listelerinin Frontend V0 ve V1.1 durumuna göre güncellenmesi (hâlâ "UI" ve "Veritabanı" kapsam dışı yazıyor).
 - `POST /diarize` endpoint adının değerlendirilmesi (şimdilik korunuyor).
-- Commit'ler henüz push edilmedi; dal `origin/milestone-1-diarization`'ın önünde.
 
 ## Baseline — two_speakers_clean (2026-09-23)
 
@@ -145,12 +147,63 @@ Yalnızca teşhis amaçlı deneyler; ürün kodu ve ayarları değiştirilmedi.
   - Her turun en benzer turu 13/13 kez aynı konuşmacı.
 - Zaman kaynaklı kayma (drift) gözlenmedi.
 - Ham embedding uzayında ve PLDA uzayında aynı sonuç.
-- **Mevcut güçlü hipotez** (henüz kanıtlanmadı): Sorun embedding modelinde değil. Pipeline'ın kayan pencere (sliding-window), segmentasyon maskesi ve embedding çıkarma aşamasında olabilir; ör. bir pencere içindeki A ile B'nin tek bir yerel konuşmacı sayılması.
+- Bu bulgu 4. teşhisle doğrulandı: sorun embedding modelinde değil.
 
 **3. Dışarıdan ayarlanabilen seçenekler** (henüz hiçbiri değiştirilmedi):
 - Çağrı parametreleri: `num_speakers`, `min_speakers`, `max_speakers`.
 - `pipeline.instantiate` ile: `clustering.threshold` (0.6), `clustering.Fa` (0.07), `clustering.Fb` (0.8), `segmentation.min_duration_off` (0.0).
 - Ürün koduna taşımak `diarization/` değişikliği gerektirir.
+
+**4. Gerçek pipeline embedding analizi** (public `hook` ile; hook'lu çalıştırmanın çıktısı ürünle birebir aynı):
+- Community-1 akışı:
+  - Segmentasyon 10 sn pencere, 1 sn adım, 3 yerel konuşmacı slotu (aynı anda en fazla 2).
+  - Her (pencere, slot) için bir embedding üretiliyor: 10 sn'lik ses WeSpeaker ResNet34'ten geçiyor, slot maskesi yalnızca istatistik havuzlamada ağırlık olarak kullanılıyor. `embedding_exclude_overlap: true`.
+  - Clustering'e yalnızca slotun pencerede ≥%20 tek başına konuştuğu embedding'ler gidiyor. AHC (0.6) → PLDA → VBx (Fa 0.07, Fb 0.8). Pencere içinde kısıtlı atama: iki slot aynı kümeye gidemiyor.
+- three_speakers'ta 44 × 3 = 132 embedding var; 52'si clustering'e gidiyor.
+- **44 pencerenin 33'ünde A ile B aynı yerel slotta.** Clustering'e giden 42 A/B embedding'inin 38'i iki konuşmacıyı içeren maskeden üretiliyor.
+- Pipeline içinde A/B AUC ~0.62, A-B benzerliği ~0.557 (saf turlarda 0.999 / 0.19).
+- Embedding, maskedeki A/B oranını izliyor (r = 0.964). Temiz maskeli az sayıdaki embedding saf turlar kadar iyi. Yani embedding çıkarıcı sağlam; girdi karışık.
+- Slot permütasyonu (pencereler arası slot değişimi) neden değil.
+- Clustering ikincil: AHC 7 küme buluyor, VBx 2'ye indiriyor. Aynı segmentasyonla kusursuz (oracle) clustering bile DER ~%34.7 / confusion ~%23.1 verirdi.
+- `num_speakers=3` denemesindeki "zamana göre bölünme" de bu karışımdan kaynaklanıyor: pencere kaydıkça A:B oranı yavaşça değişiyor.
+- **Sonuç: Ana problem segmentation / local speaker slot contamination.**
+
+**5. Slot-free teşhis** (yalnızca teşhis; ürün koduna alınmadı):
+- Yöntem:
+  - Konuşma bölgeleri: pipeline'ın kendi `speaker_counting` çıktısı (count > 0).
+  - Slot maskeleri ve slot ataması kullanılmıyor.
+  - Bölgeler 1.5 sn pencere / 0.75 sn adımla bölünüyor. 1.5 sn'den kısa bölge tek pencere; bölge sonu artakalırsa sona hizalı bir pencere daha ekleniyor.
+  - Her pencerede aynı WeSpeaker modeliyle maskesiz tek embedding çıkarılıyor.
+  - Clustering: pipeline'ın kendi `pipeline.clustering` nesnesi (AHC 0.6 / PLDA / VBx Fa 0.07, Fb 0.8) değiştirilmeden kullanılıyor. Pencere başına tek embedding olduğu için kısıtlı atama etkisiz kalıyor.
+  - Zaman çizgisi: 10 ms karelerde, kareyi kapsayan pencerelerin kümeleri arasında çoğunluk oyu; eşitlikte merkezi kareye en yakın pencere.
+- three_speakers sonucu:
+
+  | | Baseline | Slot-free |
+  |---|---|---|
+  | Konuşmacı (GT 3) | 2 | **3** |
+  | DER | ~%41.06 | **~%11.43** |
+  | Konuşmacı karışması | ~%29.5 | **%0** |
+  | Kaçırılan konuşma | ~%11.45 | ~%11.31 |
+  | Yanlış alarm | ~%0.11 | ~%0.13 |
+  | A/B AUC | ~0.62 | **~0.971** (A-B benzerliği ~0.148) |
+
+- Kısıt: Bu kayıtta her konuşmacı değişiminde sessizlik var; her konuşma bölgesi tek bir tura denk geliyor. Bu yüzden hızlı tur değişimi burada test edilmedi.
+- Teşhis script'leri repo dışında, geçici scratch alanında kaldı. Yöntem yukarıda tarif edildi; gerektiğinde yeniden yazılır.
+
+**6. 2 konuşmacılı regresyon** (`two_speakers_clean.wav`, slot-free; GT yok, baseline yalnızca karşılaştırma için kullanıldı):
+- 2 konuşmacı bulundu; gereksiz 3. veya 4. konuşmacı oluşmadı. Kümeler dengeli (27 / 26 pencere).
+- Baseline'ın tek konuşmacılı olduğu karelerin ~%97.3'ünde uyum var; ana konuşmacı değişimleri korunuyor.
+- Dikkat edilecekler:
+  - Sessizliksiz gelen kısa karşılıklar ana konuşmacıya yazılabiliyor (~0.3–0.5 sn'lik iki örnek).
+  - Çakışma temsil edilemiyor (her kareye tek konuşmacı). Ürüne alınırsa **D-011 ile çelişir**; karar güncellemesi gerekir.
+  - Sınır zamanları ±0.3 sn oynayabiliyor.
+
+**7. Yeni bağımsız test kaydı:** `tests/data/two_speakers_v2.wav`
+- ~32.0 sn, WAV PCM 16-bit, 48 kHz, stereo (pratikte ikili mono).
+- Peak −3.1 dBFS, clipping yok, NaN/Inf yok.
+- Salt-okunur dalga formu karşılaştırmasıyla `three_speakers.wav` ve `two_speakers_clean.wav`'dan bağımsız olduğu doğrulandı (en yüksek normalize korelasyon ~0.23).
+- Henüz GT yok; baseline ve slot-free için sayısal benchmark yapılmadı.
+- Not: Yereldeki `two_speakers_eskisininkopyasi.wav` bağımsız değil; `three_speakers.wav`'ın ilk ~41 sn'sinin (A/B bölümü) kopyası. Test kaydı olarak kullanılmaz.
 
 ## Test Sonuçları (2026-09-24)
 - **Birim testleri: 56/56 geçti.**
@@ -171,7 +224,7 @@ Yalnızca teşhis amaçlı deneyler; ürün kodu ve ayarları değiştirilmedi.
 
 ## Bilinen Sınırlamalar
 Konuşmacı sınırı ve boş segmentlerle ilgili maddeler D-020 kapsamında hâlâ kabul edilmiş durumda. V1.1 kalite çalışması bu sınırlamaları ölçüyor.
-- **Benzer sesler:** Diarization bazı kayıtlarda farklı konuşmacıları tek konuşmacıda birleştiriyor (three_speakers: A + B).
+- **Konuşmacı birleşmesi:** Diarization bazı kayıtlarda farklı konuşmacıları tek konuşmacıda birleştiriyor (three_speakers: A + B). Neden: segmentasyon A ile B'yi aynı yerel slota koyuyor (bkz. teşhis 4).
 - **Konuşmacı sınırında kelime kayması:** Whisper'ın kelime zamanları sapabildiği için sınırdaki kelimeler komşu konuşmacıya atanabilir.
 - **Boş kısa segmentler:** Kısa diarization segmentleri (ör. 0.07 sn'lik parçalar) ve çakışma bölgeleri `text: ""` ile kalabilir.
 - **Tolerans dışı kelimeler:** Hiçbir segmente 0.5 sn'den yakın olmayan kelimeler çıktıya girmez. Şimdiye kadarki kayıtlarda böyle bir kelime olmadı.
@@ -192,9 +245,14 @@ Konuşmacı sınırı ve boş segmentlerle ilgili maddeler D-020 kapsamında hâ
 - LLM özellikleri
 - Canlı mikrofon / gerçek zamanlı streaming implementasyonu
 
-## Sonraki Adım
-Community-1 pipeline'ının clustering'e gerçekten verdiği pencere bazlı embedding'leri incelemek. Bunun için pipeline'ın public `hook` parametresiyle segmentasyon ve embedding ara çıktıları yakalanacak; ürün kodu değişmeyecek. Bakılacak iki şey:
-- Segmentasyon, bir pencere içindeki A ile B'yi aynı yerel konuşmacıya mı koyuyor?
-- Pencere bazlı embedding'ler A/B merkezlerine göre karışık mı?
+## Git Çalışma Akışı
+- Geliştirme doğrudan `main` dalında yapılır; ayrı feature branch açılmaz (D-023).
+- `milestone-1-diarization` dalı 2026-09-24'te `main`'e fast-forward ile alındı.
+- Commit ve push yalnızca kullanıcı onayıyla yapılır. Öncesinde test, `git diff`, `git status`, token/secret ve ignore kontrolleri yapılır.
 
-Bulguya göre clustering ayarları ya da alternatif bir diarization yaklaşımı kullanıcıyla birlikte değerlendirilecek.
+## Sonraki Adım
+1. `tests/data/two_speakers_v2.reference.json` dosyasını insan eliyle, sesi dinleyerek bağımsız hazırlamak (hiçbir sistem çıktısından türetmeden).
+2. Community-1 baseline benchmark (`quality.benchmark`).
+3. Slot-free benchmark (teşhis script'i, yukarıdaki 5. maddedeki yöntemle).
+4. DER / confusion / missed / FA karşılaştırması.
+5. Sonuç iyiyse slot-free yaklaşımın ürün pipeline'ına alınmasını planlamak. D-005, D-011 ve ilgili kararlarla çelişkiler açıkça ele alınacak.

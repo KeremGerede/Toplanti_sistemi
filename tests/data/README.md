@@ -23,6 +23,12 @@ Bu klasör entegrasyon testlerinde kullanılan ses kayıtları içindir.
 - **Konuşmacı sayısı:** 3
 - **Senaryo:** Üç kişi sırayla konuşur. Üst üste konuşma yoktur ya da çok azdır.
 
+### `two_speakers_v2.wav`
+- **Amaç:** Bağımsız ikinci bir 2 konuşmacılı kontrol (baseline ile slot-free teşhisinin karşılaştırılması).
+- **Süre:** ~32 sn
+- **Konuşmacı sayısı:** 2
+- **Durum:** Yerelde mevcut. `three_speakers.wav` ve `two_speakers_clean.wav`'dan bağımsız olduğu doğrulandı. Referansı henüz hazırlanmadı.
+
 ### `short_utterances.wav`
 - **Amaç:** Kısa araya girmelerin yakalanıp yakalanmadığını gözlemlemek.
 - **Süre:** ~30–60 sn
@@ -43,7 +49,7 @@ Kalite ölçümü için her kayda, gerçekte kimin ne zaman ne söylediğini anl
 tests/data/<kayıt_adı>.reference.json
 ```
 
-İlk referans `tests/data/two_speakers_clean.reference.json` olacaktır.
+Hazır referans: `three_speakers.reference.json`. Sıradaki referans: `two_speakers_v2.reference.json`.
 
 **Referans dosyaları commit edilmez.** Gerçek konuşma içeriği barındırdıkları için `.gitignore` ile dışarıda bırakılır ve yerelde kalır.
 
@@ -82,7 +88,7 @@ Transkript çıktısıyla aynı yapıdadır:
 - Metin söylendiği şekilde yazılır. Sayılar rakamla yazılır (ör. `30`). Noktalama ve büyük/küçük harf serbesttir; ölçümde normalize edilir.
 - Aynı anda konuşma (overlap) varsa iki konuşmacının turları zaman olarak çakışabilir.
 
-**`two_speakers_clean` referansı sıfırdan hazırlanır.** Pipeline çıktısı taslak olarak kullanılmaz; mevcut hatalı çıktının yönlendirmemesi için önceki sonuçlara bakmadan, yalnızca sesi dinleyerek yazılır.
+**Referanslar sıfırdan hazırlanır.** Pipeline çıktısı taslak olarak kullanılmaz; mevcut hatalı çıktının yönlendirmemesi için önceki sonuçlara bakmadan, yalnızca sesi dinleyerek yazılır.
 
 ### Ölçüm
 

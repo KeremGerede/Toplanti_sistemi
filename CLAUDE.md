@@ -17,6 +17,8 @@ Her anlamlı değişiklikte şu sırayı izle:
 8. Commit öncesinde ilgili test/doğrulamayı, `git diff`, `git status`, token/secret taramasını ve ignore kontrolünü yap; sonucu kullanıcıya raporla.
 9. Commit ve push yalnızca kullanıcı onayıyla yap.
 
+Geliştirme doğrudan `main` dalında yapılır; ayrı feature branch açılmaz. Commit'ler `origin/main`'e push edilir (D-023).
+
 ## Kararlarla Çelişki
 Yeni bir gereksinim mevcut bir kararla (`DECISIONS.md`) veya kapsam listeleriyle çelişiyorsa:
 - Eski karar sessizce değiştirilmez.

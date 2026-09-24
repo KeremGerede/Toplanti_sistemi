@@ -214,3 +214,20 @@ plan → uygula → test et → doğrula → dokümanları güncelle → commit
 - Sonuç `outputs/<zaman>_<dosya_adı>.json` olarak kaydedilir. `outputs/` içeriği commit edilmez.
 
 **Gerekçe:** Diarization ve transkripti tek bir çağrıyla kullanmak için en küçük arayüz. Gizlilik nedeniyle ses saklanmaz ve sunucu ağa açılmaz.
+
+---
+
+## D-023 — Git Çalışma Akışı: Doğrudan `main`
+**Karar (kullanıcı kararı, 2026-09-24):** Geliştirme doğrudan `main` dalında yapılır. Ayrı feature/milestone branch zorunluluğu yoktur. Akış:
+
+```text
+main → commit → origin/main push
+```
+
+Değişmeyen güvenlik kuralları:
+- Commit öncesi test / doğrulama, `git diff`, `git status`, token/secret taraması ve ignore kontrolü yapılır.
+- Commit ve push yalnızca kullanıcı onayıyla yapılır.
+
+Önceki uygulama: Geliştirme `milestone-1-diarization` dalında yürütülüyor, `main`'e alınmıyordu. Bu dal 2026-09-24'te `main`'e fast-forward ile alındı.
+
+**Gerekçe:** Tek geliştiricili, yerel bir proje; ayrı dal ve PR süreci ek fayda sağlamadan iş yükü getiriyor.
